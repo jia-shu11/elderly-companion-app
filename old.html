@@ -1,0 +1,2441 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>长者情感陪伴助手 - 用户端</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(180deg, #fef3f2 0%, #f5f3ff 50%, #f0fdf4 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: opacity 0.5s ease;
+            font-size: 16px;
+        }
+        
+        /* 确保所有文本元素继承body的字体大小 */
+        * {
+            font-size: inherit;
+        }
+        
+        .app-container {
+            width: 100%;
+            max-width: 390px;
+            height: 844px;
+            background-color: #ffffff;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            border-radius: 32px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* 顶部导航栏 - 简洁头部 */
+        .top-nav {
+            height: auto;
+            background: linear-gradient(135deg, #C6B8E3 0%, #CBBAC7 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 54px 20px 25px;
+            padding-top: calc(env(safe-area-inset-top) + 30px);
+            border-bottom: none;
+            border-radius: 32px 32px 0 0;
+            position: relative;
+            z-index: 10;
+        }
+        
+        .greeting-section {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+        }
+        
+        .user-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fef3f2 0%, #f5f3ff 100%);
+            border: 3px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.08);
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .user-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .avatar-edit-icon {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #a78bfa 0%, #8b5cf6 100%);
+            border-radius: 50%;
+            border: 2px solid white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: white;
+            box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+        }
+        
+        .user-info {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .greeting-text {
+            font-size: 0.875em;
+            color: rgba(255, 255, 255, 0.85);
+            margin-bottom: 4px;
+        }
+        
+        .user-name {
+            font-size: 1.375em;
+            font-weight: 600;
+            color: white;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 55px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 12px;
+            padding: 8px 16px;
+            font-size: 0.875em;
+            font-weight: 500;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        /* 编辑资料模态框 */
+        .profile-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .profile-modal.active {
+            display: flex;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .modal-content {
+            background-color: white;
+            border-radius: 24px;
+            padding: 30px;
+            width: 90%;
+            max-width: 350px;
+            animation: slideUp 0.3s ease;
+        }
+        
+        @keyframes slideUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-title {
+            font-size: 1.25em;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 25px;
+            color: #333;
+        }
+        
+        .avatar-upload-section {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+        
+        .avatar-preview {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #fef3f2 0%, #f5f3ff 100%);
+            border: 4px solid #a78bfa;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        .avatar-preview img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .upload-btn {
+            background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 12px 24px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .upload-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+        }
+        
+        .upload-btn:active {
+            transform: scale(0.98);
+        }
+        
+        #avatarInput {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 20px;
+        }
+        
+        .form-label {
+            font-size: 0.875em;
+            font-weight: 500;
+            color: #64748b;
+            margin-bottom: 8px;
+            display: block;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1em;
+            outline: none;
+            transition: border-color 0.3s ease;
+            box-sizing: border-box;
+        }
+        
+        .form-input:focus {
+            border-color: #a78bfa;
+        }
+        
+        .modal-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+        
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .modal-btn.cancel {
+            background-color: #f1f5f9;
+            color: #64748b;
+        }
+        
+        .modal-btn.cancel:hover {
+            background-color: #e2e8f0;
+        }
+        
+        .modal-btn.confirm {
+            background: linear-gradient(135deg, #CBBAC7 0%, #BAA8B8 100%);
+            color: white;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+        }
+        
+        .modal-btn.confirm:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+        }
+        
+        .back-button:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        /* 顶部资讯滚动区域 */
+        .news-section {
+            position: relative;
+            height: 120px;
+            background-color: #f0f8ff;
+            overflow: hidden;
+        }
+        
+        .news-container {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s ease;
+        }
+        
+        .news-item {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 20px;
+        }
+        
+        .news-item h3 {
+            font-size: 1.125em;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 8px;
+        }
+        
+        .news-item p {
+            font-size: 1em;
+            color: #666666;
+        }
+        
+        .news-nav {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 20px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .news-nav.left {
+            left: 10px;
+        }
+        
+        .news-nav.right {
+            right: 10px;
+        }
+        
+        .content {
+            padding: 15px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            overflow-y: auto;
+        }
+        
+        /* 功能卡片区域 */
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+        
+        /* 大号卡片 */
+        .feature-card-large {
+            grid-column: span 2;
+            background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+            border-radius: 24px;
+            padding: 25px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35);
+            color: white;
+            min-height: 140px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .feature-card-large::before {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+            opacity: 0.3;
+            animation: ripple 3s ease-out infinite;
+        }
+        
+        .feature-card-large:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px rgba(139, 92, 246, 0.45);
+        }
+        
+        .feature-card-large .card-icon {
+            font-size: 36px;
+            margin-bottom: 10px;
+            z-index: 1;
+        }
+        
+        .feature-card-large .card-text {
+            font-size: 1.125em;
+            font-weight: 600;
+            z-index: 1;
+        }
+        
+        .feature-card-large .card-hint {
+            font-size: 0.875em;
+            opacity: 0.9;
+            z-index: 1;
+        }
+        
+        /* 中号卡片 */
+        .feature-card-medium {
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+            border-radius: 20px;
+            padding: 22px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+            min-height: 120px;
+        }
+        
+        .feature-card-medium:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 24px rgba(139, 92, 246, 0.15);
+        }
+        
+        .feature-card-medium .card-icon {
+            font-size: 28px;
+            margin-bottom: 8px;
+        }
+        
+        .feature-card-medium .card-text {
+            font-size: 1em;
+            font-weight: 600;
+            color: #333333;
+            text-align: center;
+        }
+        
+        /* 小号卡片 */
+        .feature-card-small {
+            background: linear-gradient(145deg, #D5DAE9 0%, #C8CEDB 100%);
+            border-radius: 16px;
+            padding: 16px 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+            min-height: 100px;
+        }
+        
+        /* 各卡片独特颜色 - 明度与连线子女卡片相似 */
+        .feature-card-medium.card-text-input {
+            background: linear-gradient(145deg, #EDE4EA 0%, #E3D9DF 100%);
+        }
+        
+        .feature-card-medium.card-connect-family {
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+        }
+        
+        .feature-card-small.card-status-detection {
+            background: linear-gradient(145deg, #E8EAEF 0%, #DFE2E8 100%);
+        }
+        
+        .feature-card-small.card-privacy-mode {
+            background: linear-gradient(145deg, #E5DDED 0%, #DBD0E3 100%);
+        }
+        
+        .feature-card-medium.card-doctor-list {
+            background: linear-gradient(145deg, #F0F0F1 0%, #E8E8E9 100%);
+        }
+        
+        .feature-card-medium.card-book-appointment {
+            background: linear-gradient(145deg, #EDE4EA 0%, #E3D9DF 100%);
+        }
+        
+        .feature-card-small.card-online-consultation {
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+        }
+        
+        .feature-card-small.card-consultation-records {
+            background: linear-gradient(145deg, #E5DDED 0%, #DBD0E3 100%);
+        }
+        
+        .feature-card-small:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.12);
+        }
+        
+        .feature-card-small .card-icon {
+            font-size: 22px;
+            margin-bottom: 6px;
+        }
+        
+        .feature-card-small .card-text {
+            font-size: 0.875em;
+            font-weight: 500;
+            color: #64748b;
+            text-align: center;
+        }
+        
+        @keyframes ripple {
+            0% {
+                transform: scale(1);
+                opacity: 0.3;
+            }
+            100% {
+                transform: scale(1.5);
+                opacity: 0;
+            }
+        }
+        
+        .icon-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: white;
+            z-index: 1;
+        }
+        
+        .mic-icon {
+            width: 56px;
+            height: 56px;
+            background-color: white;
+            border-radius: 50%;
+            position: relative;
+            margin-bottom: 12px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .mic-icon::before {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 30px;
+            background: linear-gradient(135deg, #CBBAC7 0%, #BAA8B8 100%);
+            border-radius: 11px;
+            box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+        }
+        
+        .mic-icon::after {
+            content: '';
+            position: absolute;
+            width: 26px;
+            height: 8px;
+            background: linear-gradient(135deg, #CBBAC7 0%, #BAA8B8 100%);
+            border-radius: 4px;
+            margin-top: 22px;
+            box-shadow: 0 2px 4px rgba(139, 92, 246, 0.2);
+        }
+        
+        .mic-icon.recording {
+            animation: pulse 1s ease-in-out infinite;
+        }
+        
+        .mic-icon.recording::before,
+        .mic-icon.recording::after {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff4757 100%);
+            box-shadow: 0 2px 8px rgba(255, 71, 87, 0.4);
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(255, 68, 68, 0.7);
+            }
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 0 10px rgba(255, 68, 68, 0);
+            }
+        }
+        
+        .recording-indicator {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .recording-indicator.active {
+            display: flex;
+        }
+        
+        .recording-dots {
+            display: flex;
+            gap: 5px;
+        }
+        
+        .recording-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: #ff4444;
+            animation: dotPulse 1.4s infinite ease-in-out both;
+        }
+        
+        .recording-dot:nth-child(1) { animation-delay: -0.32s; }
+        .recording-dot:nth-child(2) { animation-delay: -0.16s; }
+        .recording-dot:nth-child(3) { animation-delay: 0s; }
+        
+        @keyframes dotPulse {
+            0%, 80%, 100% {
+                transform: scale(0.6);
+                opacity: 0.5;
+            }
+            40% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+        
+        .recording-text {
+            font-size: 0.875em;
+            color: #ff4444;
+            font-weight: 600;
+        }
+        
+        /* 语音识别实时文字显示 */
+        .voice-transcript {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 16px;
+            font-size: 1.125em;
+            font-weight: 500;
+            z-index: 2000;
+            max-width: 80%;
+            text-align: center;
+            display: none;
+            backdrop-filter: blur(4px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .voice-transcript.active {
+            display: block;
+        }
+        
+        .voice-transcript .transcript-label {
+            font-size: 0.75em;
+            color: #aaa;
+            margin-bottom: 8px;
+        }
+        
+        .voice-transcript .transcript-text {
+            font-size: 1.25em;
+            min-height: 1.5em;
+        }
+        
+        .voice-transcript .final {
+            color: #4CAF50;
+        }
+        
+        /* 虚拟角色形象显示 - 数字人主视觉 */
+        .character-avatar {
+            position: absolute;
+            top: 2%;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+        }
+        
+        .character-avatar.active {
+            display: block;
+        }
+        
+        .character-image {
+            width: 360px;
+            height: 520px;
+            max-height: 55vh;
+            border-radius: 0;
+            background-size: contain;
+            background-position: center bottom;
+            background-repeat: no-repeat;
+            border: none;
+            box-shadow: none;
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .character-image.old_friend {
+            background-image: url('微信图片_20260417102630_2616_11(1).png');
+        }
+        
+        .character-image.xiaoban {
+            background-image: url('131c850021131df93ec83ca54ed3e642.png');
+        }
+        
+        /* 聊天气泡 - 悬浮层（下方居中） */
+        .character-bubble {
+            position: absolute;
+            top: 65%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 88%;
+            max-width: 360px;
+            background: linear-gradient(135deg, rgba(198, 184, 227, 0.92) 0%, rgba(187, 186, 199, 0.92) 100%);
+            color: white;
+            padding: 24px 28px;
+            border-radius: 28px;
+            font-size: 1.2em;
+            line-height: 1.6;
+            z-index: 101;
+            display: none;
+            animation: fadeInUp 0.5s ease-out;
+            box-shadow: 0 12px 40px rgba(139, 92, 246, 0.4);
+            max-height: 20vh;
+            overflow-y: auto;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+        
+        .character-bubble.active {
+            display: block;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translate(-50%, -60%);
+            }
+            to {
+                opacity: 1;
+                transform: translate(-50%, -50%);
+            }
+        }
+        
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateY(-50%) translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(-50%) translateX(0);
+            }
+        }
+        
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+            50% {
+                transform: translateY(-8px);
+            }
+        }
+        
+        .speaker-icon {
+            width: 40px;
+            height: 40px;
+            position: relative;
+            margin-bottom: 16px;
+        }
+        
+        .speaker-icon::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 24px;
+            height: 24px;
+            background-color: white;
+            border-radius: 50%;
+        }
+        
+        .speaker-icon::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 32px;
+            height: 32px;
+            border: 4px solid white;
+            border-radius: 50%;
+        }
+        
+        .hint-text {
+            font-size: 1.125em;
+            font-weight: 600;
+            text-align: center;
+            line-height: 1.2;
+        }
+        
+        /* 快捷功能按钮 */
+        .quick-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+            width: 100%;
+        }
+        
+        .quick-button {
+            background: linear-gradient(145deg, #FCFCFD 0%, #F5F5F6 100%);
+            border: none;
+            border-radius: 24px;
+            padding: 30px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            min-height: 150px;
+        }
+        
+        .quick-button:hover {
+            transform: translateY(-6px) scale(1.02);
+            box-shadow: 0 12px 32px rgba(139, 92, 246, 0.15);
+        }
+        
+        .quick-icon {
+            font-size: 2.5em;
+        }
+        
+        .quick-text {
+            font-size: 1.125em;
+            font-weight: 600;
+            color: #333333;
+        }
+        
+        /* 自动模式设置 */
+        .auto-mode-section {
+            background-color: #f8f9fa;
+            border-radius: 20px;
+            padding: 30px 20px;
+            text-align: center;
+        }
+        
+        .auto-mode-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 20px;
+        }
+        
+        .toggle-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 30px;
+        }
+        
+        .toggle-button {
+            position: relative;
+            width: 100px;
+            height: 56px;
+            background: linear-gradient(145deg, #D5DAE9 0%, #C8CEDB 100%);
+            border-radius: 28px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .toggle-button.active {
+            background: linear-gradient(145deg, #CBBAC7 0%, #BAA8B8 100%);
+        }
+        
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 48px;
+            height: 48px;
+            background-color: white;
+            border-radius: 50%;
+            transition: transform 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .toggle-button.active .toggle-slider {
+            transform: translateX(44px);
+        }
+        
+        .status-indicator {
+            font-size: 20px;
+            font-weight: 600;
+            color: #666666;
+            transition: color 0.3s ease;
+        }
+        
+        .status-indicator.active {
+            color: #4CAF50;
+        }
+        
+        /* 功能模块区域 */
+        .features-section {
+            width: 100%;
+        }
+        
+        .features-title {
+            font-size: 1.125em;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .feature-item {
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+            border: none;
+            border-radius: 20px;
+            padding: 25px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+            min-height: 140px;
+        }
+        
+        .feature-item:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 10px 28px rgba(139, 92, 246, 0.12);
+        }
+        
+        .feature-icon {
+            width: 64px;
+            height: 64px;
+            border-radius: 20px;
+            background: linear-gradient(135deg, #D5DAE9 0%, #C8CEDB 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 2em;
+            color: #8b5cf6;
+        }
+        
+        .feature-text {
+            font-size: 1em;
+            color: #333333;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .feature-item.hidden {
+            opacity: 0;
+            transform: translateY(20px);
+            height: 0;
+            padding: 0 20px;
+            margin: 0;
+            overflow: hidden;
+        }
+        
+        /* 底部导航 */
+        .bottom-nav {
+            height: 70px;
+            background-color: #ffffff;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 0 20px;
+        }
+        
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+            min-width: 80px;
+        }
+        
+        .nav-icon {
+            font-size: 24px;
+            color: #666666;
+        }
+        
+        .nav-text {
+            font-size: 0.875em;
+            color: #666666;
+            font-weight: 500;
+        }
+        
+        .nav-item.active .nav-icon,
+        .nav-item.active .nav-text {
+            color: #4CAF50;
+        }
+        
+        /* 适老化设置 */
+        .accessibility-section {
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+            border-radius: 20px;
+            padding: 25px 20px;
+            margin-top: 20px;
+        }
+        
+        .accessibility-title {
+            font-size: 1.125em;
+            font-weight: 600;
+            color: #333333;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        
+        .accessibility-options {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .accessibility-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: linear-gradient(145deg, #FCFCFD 0%, #F5F5F6 100%);
+            border-radius: 12px;
+        }
+        
+        .option-label {
+            font-size: 1.125em;
+            font-weight: 500;
+            color: #333333;
+        }
+
+        /* 角色性格切换按钮样式 */
+        .personality-control {
+            display: flex;
+            gap: 8px;
+        }
+
+        .personality-btn {
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.875em;
+            font-weight: 500;
+            border: 2px solid #e2e8f0;
+            background: linear-gradient(145deg, #ffffff 0%, #f8fafc 100%);
+            color: #64748b;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+        }
+
+        .personality-btn.active {
+            background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+            border-color: #C6B8E3;
+            color: white;
+            box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+        }
+
+        .personality-btn:hover {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+            transform: translateY(-1px);
+        }
+
+        .personality-btn.active:hover {
+            background: linear-gradient(135deg, #9333ea 0%, #8b5cf6 100%);
+            color: white;
+        }
+        
+        .option-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .font-size-control {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .font-size-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #CBBAC7 0%, #BAA8B8 100%);
+            border: none;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 1.125em;
+            font-weight: 600;
+            color: white;
+            cursor: pointer;
+        }
+        
+        .font-size-display {
+            font-size: 1em;
+            font-weight: 500;
+            min-width: 40px;
+            text-align: center;
+        }
+        
+        /* 通讯录模态框样式 */
+        .contact-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .contact-content {
+            background-color: #fff;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 16px;
+            width: 90%;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+            max-height: 80vh;
+            overflow: hidden;
+        }
+
+        .contact-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .contact-header h2 {
+            margin: 0;
+            font-size: 1.25em;
+        }
+
+        .back-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .add-contact-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            padding: 8px 16px;
+            color: white;
+            font-size: 1em;
+            cursor: pointer;
+        }
+
+        .contact-list {
+            padding: 10px;
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .contact-item {
+            display: flex;
+            align-items: center;
+            padding: 16px;
+            margin-bottom: 10px;
+            background-color: #f8f9fa;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .contact-item:hover {
+            background-color: #e8f5e8;
+            border-color: #4CAF50;
+        }
+
+        .contact-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background-color: #4CAF50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.5em;
+            margin-right: 16px;
+        }
+
+        .contact-info {
+            flex: 1;
+        }
+
+        .contact-name {
+            font-size: 1.125em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 4px;
+        }
+
+        .contact-phone {
+            font-size: 1em;
+            color: #666;
+        }
+
+        .contact-delete {
+            color: #ff4444;
+            font-size: 1.25em;
+            padding: 8px;
+        }
+
+        /* 连线确认对话框样式 */
+        .confirm-call-modal {
+            display: none;
+            position: fixed;
+            z-index: 3500;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .confirm-call-content {
+            background-color: #fff;
+            margin: 30% auto;
+            padding: 32px;
+            border-radius: 20px;
+            width: 85%;
+            max-width: 350px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            text-align: center;
+        }
+
+        .confirm-call-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+        }
+
+        .confirm-call-title {
+            font-size: 1.25em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+
+        .confirm-call-phone {
+            font-size: 1.125em;
+            color: #666;
+            margin-bottom: 24px;
+        }
+
+        .confirm-call-actions {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+        }
+
+        .confirm-call-btn {
+            padding: 12px 32px;
+            border-radius: 12px;
+            font-size: 1.125em;
+            font-weight: 600;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirm-call-btn.cancel {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .confirm-call-btn.confirm {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        .confirm-call-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 自定义输入对话框样式 */
+        .prompt-modal {
+            display: none;
+            position: fixed;
+            z-index: 3000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .prompt-content {
+            background-color: #fff;
+            margin: 20% auto;
+            padding: 24px;
+            border-radius: 16px;
+            width: 85%;
+            max-width: 380px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .prompt-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .prompt-input {
+            width: 100%;
+            padding: 14px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            outline: none;
+            transition: border-color 0.2s;
+            box-sizing: border-box;
+        }
+
+        .prompt-input:focus {
+            border-color: #3498db;
+        }
+
+        .prompt-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .prompt-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .prompt-btn.cancel {
+            background-color: #f0f0f0;
+            color: #666;
+        }
+
+        .prompt-btn.cancel:hover {
+            background-color: #e0e0e0;
+        }
+
+        .prompt-btn.confirm {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .prompt-btn.confirm:hover {
+            background-color: #2980b9;
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 400px) {
+            .app-container {
+                width: 100vw;
+                height: 100vh;
+            }
+            
+            .content {
+                padding: 15px;
+                gap: 20px;
+            }
+            
+            .main-button {
+                width: 180px;
+                height: 180px;
+            }
+            
+            .quick-button {
+                padding: 25px 15px;
+                min-height: 130px;
+            }
+            
+            .feature-item {
+                padding: 20px 15px;
+                min-height: 120px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- 顶部导航栏 - 简洁头部 -->
+        <div class="top-nav">
+            <button class="back-button" onclick="navigateToPage('index.html')">返回</button>
+            <div class="greeting-section">
+                <div class="user-avatar" id="userAvatar" onclick="openProfileModal()">
+                    <span id="avatarEmoji">👵</span>
+                    <div class="avatar-edit-icon">✏️</div>
+                </div>
+                <div class="user-info">
+                    <div class="greeting-text">早上好</div>
+                    <div class="user-name" id="userName">王阿姨</div>
+                </div>
+            </div>
+            <div class="personality-control" id="personalityControl">
+                <button class="personality-btn active" id="personalityOldFriend" onclick="setPersonality('old_friend')">老朋友</button>
+                <button class="personality-btn" id="personalityXiaoban" onclick="setPersonality('xiaoban')">小伴</button>
+            </div>
+        </div>
+        
+        <!-- 顶部资讯滚动区域 -->
+        <div class="news-section">
+            <div class="news-container" id="newsContainer">
+                <div class="news-item">
+                    <div>
+                        <h3>温馨提示</h3>
+                        <p>今日天气晴朗，适合户外活动</p>
+                    </div>
+                </div>
+                <div class="news-item">
+                    <div>
+                        <h3>健康提醒</h3>
+                        <p>记得按时服药，保持良好作息</p>
+                    </div>
+                </div>
+                <div class="news-item">
+                    <div>
+                        <h3>亲情连线</h3>
+                        <p>子女今天会来看望您</p>
+                    </div>
+                </div>
+            </div>
+            <div class="news-nav left" onclick="scrollNews(-1)">&lt;</div>
+            <div class="news-nav right" onclick="scrollNews(1)">&gt;</div>
+        </div>
+        
+        <div class="content">
+            <!-- 语音识别实时文字显示 -->
+            <div class="voice-transcript" id="voiceTranscript">
+                <div class="transcript-label">您正在说：</div>
+                <div class="transcript-text" id="transcriptText">...</div>
+            </div>
+            
+            <!-- 虚拟角色形象显示 -->
+            <div class="character-avatar" id="characterAvatar">
+                <div class="character-image" id="characterImage"></div>
+            </div>
+            
+            <!-- 聊天气泡 -->
+            <div class="character-bubble" id="characterBubble"></div>
+            
+            <!-- 功能卡片区域 - 大小搭配布局 -->
+            <div class="features-grid">
+                <!-- 大号卡片 - 语音助手 -->
+                <div class="feature-card-large" id="voiceButton" onmousedown="startRecording()" onmouseup="stopRecording()" onmouseleave="stopRecording()" ontouchstart="startRecording()" ontouchend="stopRecording()">
+                    <div class="mic-icon" id="micIcon"></div>
+                    <div class="card-text">语音助手</div>
+                    <div class="card-hint" id="voiceHint">按住说话</div>
+                    <div class="recording-indicator" id="recordingIndicator">
+                        <div class="recording-dots">
+                            <div class="recording-dot"></div>
+                            <div class="recording-dot"></div>
+                            <div class="recording-dot"></div>
+                        </div>
+                        <div class="recording-text">正在录音</div>
+                    </div>
+                </div>
+                
+                <!-- 中号卡片 -->
+                <div class="feature-card-medium card-text-input" onclick="openTextInput()">
+                    <div class="card-icon">✏️</div>
+                    <div class="card-text">文字输入</div>
+                </div>
+                <div class="feature-card-medium card-connect-family" onclick="connectWithFamily()">
+                    <div class="card-icon">👨‍👩‍👧‍👦</div>
+                    <div class="card-text">连线子女</div>
+                </div>
+            
+
+            
+                <!-- 小号卡片 -->
+                <div class="feature-card-small card-status-detection" id="statusDetection" onclick="toggleFeature('statusDetection')">
+                    <div class="card-icon">⏰</div>
+                    <div class="card-text">实时检测</div>
+                </div>
+                <div class="feature-card-small card-privacy-mode" id="privacyMode" onclick="toggleFeature('privacyMode')">
+                    <div class="card-icon">🔒</div>
+                    <div class="card-text">隐私保护</div>
+                </div>
+                
+                <!-- 中号卡片 -->
+                <div class="feature-card-medium card-doctor-list" onclick="showDoctorList()">
+                    <div class="card-icon">👨‍⚕️</div>
+                    <div class="card-text">医生列表</div>
+                </div>
+                <div class="feature-card-medium card-book-appointment" onclick="bookAppointment()">
+                    <div class="card-icon">📅</div>
+                    <div class="card-text">问诊预约</div>
+                </div>
+                
+                <!-- 小号卡片 -->
+                <div class="feature-card-small card-online-consultation" onclick="onlineConsultation()">
+                    <div class="card-icon">💬</div>
+                    <div class="card-text">在线咨询</div>
+                </div>
+                <div class="feature-card-small card-consultation-records" onclick="viewConsultationRecords()">
+                    <div class="card-icon">📋</div>
+                    <div class="card-text">问诊记录</div>
+                </div>
+            </div>
+            
+            <!-- 适老化设置 -->
+            <div class="accessibility-section">
+                <div class="accessibility-title">适老化设置</div>
+                <div class="accessibility-options">
+                    <div class="accessibility-option">
+                        <div class="option-label">字体大小</div>
+                        <div class="font-size-control">
+                            <button class="font-size-btn" onclick="adjustFontSize(-1)">-</button>
+                            <div class="font-size-display" id="fontSizeDisplay">中</div>
+                            <button class="font-size-btn" onclick="adjustFontSize(1)">+</button>
+                        </div>
+                    </div>
+                    <div class="accessibility-option">
+                        <div class="option-label">防蓝光模式</div>
+                        <div class="option-control">
+                            <div class="toggle-button" id="blueLightToggle" onclick="toggleBlueLightMode()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accessibility-option">
+                        <div class="option-label">语音提示</div>
+                        <div class="option-control">
+                            <div class="toggle-button" id="voicePromptToggle" onclick="toggleVoicePrompt()">
+                                <div class="toggle-slider"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        </div>
+        
+        <!-- 编辑资料模态框 -->
+        <div id="profile-modal" class="profile-modal">
+            <div class="modal-content">
+                <div class="modal-title">编辑个人资料</div>
+                <div class="avatar-upload-section">
+                    <div class="avatar-preview" id="avatarPreview">👵</div>
+                    <label for="avatarInput" class="upload-btn">
+                        <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
+                        上传头像
+                    </label>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">昵称</label>
+                    <input type="text" class="form-input" id="nicknameInput" placeholder="请输入昵称">
+                </div>
+                <div class="modal-actions">
+                    <button class="modal-btn cancel" onclick="closeProfileModal()">取消</button>
+                    <button class="modal-btn confirm" onclick="saveProfile()">保存</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 通讯录模态框 -->
+        <div id="contact-modal" class="contact-modal">
+            <div class="contact-content">
+                <div class="contact-header">
+                    <button class="back-btn" onclick="closeContactModal()">← 返回</button>
+                    <h2>通讯录</h2>
+                    <button class="add-contact-btn" onclick="addContact()">+ 添加</button>
+                </div>
+                <div class="contact-list" id="contact-list"></div>
+            </div>
+        </div>
+        
+        <!-- 连线确认对话框 -->
+        <div id="confirm-call-modal" class="confirm-call-modal">
+            <div class="confirm-call-content">
+                <div class="confirm-call-icon">📞</div>
+                <div class="confirm-call-title" id="confirm-call-title"></div>
+                <div class="confirm-call-phone" id="confirm-call-phone"></div>
+                <div class="confirm-call-actions">
+                    <button class="confirm-call-btn cancel" onclick="closeConfirmCall()">取消</button>
+                    <button class="confirm-call-btn confirm" onclick="makeCall()">确认连线</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 自定义输入对话框 -->
+        <div id="prompt-modal" class="prompt-modal">
+            <div class="prompt-content">
+                <div class="prompt-title" id="prompt-title"></div>
+                <input type="text" class="prompt-input" id="prompt-input" placeholder="">
+                <div class="prompt-actions">
+                    <button class="prompt-btn cancel" onclick="closePrompt()">取消</button>
+                    <button class="prompt-btn confirm" onclick="confirmPrompt()">确定</button>
+                </div>
+            </div>
+        </div>
+        
+        <script src="js/api.js"></script>
+    <script>
+        // 自定义prompt函数回调
+        let promptCallback = null;
+        
+        // 自定义prompt函数
+        function customPrompt(title, placeholder = '') {
+            return new Promise((resolve) => {
+                const promptModal = document.getElementById('prompt-modal');
+                const promptTitle = document.getElementById('prompt-title');
+                const promptInput = document.getElementById('prompt-input');
+                
+                promptTitle.textContent = title;
+                promptInput.placeholder = placeholder;
+                promptInput.value = '';
+                promptModal.style.display = 'block';
+                promptInput.focus();
+                
+                promptCallback = function(value) {
+                    promptModal.style.display = 'none';
+                    resolve(value);
+                };
+            });
+        }
+        
+        function closePrompt() {
+            if (promptCallback) {
+                promptCallback(null);
+                promptCallback = null;
+            }
+        }
+        
+        function confirmPrompt() {
+            const promptInput = document.getElementById('prompt-input');
+            if (promptCallback) {
+                promptCallback(promptInput.value.trim());
+                promptCallback = null;
+            }
+        }
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            const promptModal = document.getElementById('prompt-modal');
+            if (e.target === promptModal) {
+                closePrompt();
+            }
+        });
+        
+        // 页面跳转函数
+        function navigateToPage(url) {
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        }
+        
+        // 编辑资料功能
+        let currentAvatarData = null;
+        
+        function openProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            const nicknameInput = document.getElementById('nicknameInput');
+            const avatarPreview = document.getElementById('avatarPreview');
+            const userName = document.getElementById('userName');
+            const avatarEmoji = document.getElementById('avatarEmoji');
+            
+            // 填充当前数据
+            nicknameInput.value = userName.textContent;
+            
+            // 检查是否有已上传的头像
+            if (currentAvatarData) {
+                avatarPreview.innerHTML = `<img src="${currentAvatarData}" alt="头像">`;
+            } else if (avatarEmoji) {
+                avatarPreview.textContent = avatarEmoji.textContent;
+            }
+            
+            modal.classList.add('active');
+        }
+        
+        function closeProfileModal() {
+            const modal = document.getElementById('profile-modal');
+            modal.classList.remove('active');
+        }
+        
+        function handleAvatarUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const avatarPreview = document.getElementById('avatarPreview');
+                    avatarPreview.innerHTML = `<img src="${e.target.result}" alt="头像">`;
+                    currentAvatarData = e.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        
+        function saveProfile() {
+            const nicknameInput = document.getElementById('nicknameInput');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const avatarEmoji = document.getElementById('avatarEmoji');
+            
+            // 保存昵称
+            if (nicknameInput.value.trim()) {
+                userName.textContent = nicknameInput.value.trim();
+                localStorage.setItem('userName', nicknameInput.value.trim());
+            }
+            
+            // 保存头像
+            if (currentAvatarData) {
+                userAvatar.innerHTML = `<img src="${currentAvatarData}" alt="头像"><div class="avatar-edit-icon">✏️</div>`;
+                localStorage.setItem('avatarData', currentAvatarData);
+            }
+            
+            // 关闭模态框
+            closeProfileModal();
+        }
+        
+        // 加载保存的用户资料
+        function loadProfile() {
+            const savedName = localStorage.getItem('userName');
+            const savedAvatar = localStorage.getItem('avatarData');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            
+            if (savedName) {
+                userName.textContent = savedName;
+            }
+            
+            if (savedAvatar) {
+                currentAvatarData = savedAvatar;
+                userAvatar.innerHTML = `<img src="${savedAvatar}" alt="头像"><div class="avatar-edit-icon">✏️</div>`;
+            }
+        }
+        
+        // 页面加载时初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            loadProfile();
+        });
+        
+        // 资讯滚动功能
+        let currentNewsIndex = 0;
+        const newsContainer = document.getElementById('newsContainer');
+        const newsItems = newsContainer.children;
+        
+        function scrollNews(direction) {
+            currentNewsIndex = (currentNewsIndex + direction + newsItems.length) % newsItems.length;
+            updateNewsPosition();
+        }
+        
+        function updateNewsPosition() {
+            newsContainer.style.transform = `translateX(-${currentNewsIndex * 100}%)`;
+        }
+        
+        // 自动滚动资讯
+        setInterval(() => {
+            scrollNews(1);
+        }, 5000);
+        
+        // 语音识别相关变量
+        let recognition = null;
+        let isRecording = false;
+        let isRecognitionInitialized = false;
+        
+        // 重置所有状态
+        function resetRecordingState() {
+            isRecording = false;
+            updateRecordingUI(false);
+            hideVoiceTranscript();
+        }
+        
+        // 初始化语音识别
+        function initRecognition() {
+            if (isRecognitionInitialized) return;
+            
+            if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
+                const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+                recognition = new SpeechRecognitionAPI();
+                recognition.lang = 'zh-CN';
+                recognition.interimResults = true; // 启用实时识别结果
+                recognition.continuous = false; // 改为单次识别，避免持续模式的问题
+                recognition.maxAlternatives = 1;
+                
+                recognition.onstart = function() {
+                    console.log('语音识别已启动');
+                    isRecording = true;
+                    updateRecordingUI(true);
+                    showVoiceTranscript(''); // 显示文字显示区域
+                };
+                
+                recognition.onresult = function(event) {
+                    let transcript = '';
+                    let isFinal = false;
+                    
+                    // 收集所有识别结果
+                    for (let i = event.resultIndex; i < event.results.length; i++) {
+                        transcript += event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            isFinal = true;
+                        }
+                    }
+                    
+                    // 更新实时文字显示
+                    updateVoiceTranscript(transcript, isFinal);
+                    
+                    // 如果是最终结果，停止录音并处理
+                    if (isFinal) {
+                        resetRecordingState();
+                        processVoiceInput(transcript);
+                    }
+                };
+                
+                recognition.onerror = function(event) {
+                    console.error('语音识别错误:', event.error);
+                    resetRecordingState();
+                    if (event.error === 'not-allowed') {
+                        showFeedback('请在浏览器设置中允许麦克风权限');
+                    } else if (event.error === 'no-speech') {
+                        showFeedback('没有检测到声音，请重试');
+                    } else if (event.error === 'aborted') {
+                        console.log('录音被用户中止');
+                    } else {
+                        showFeedback('语音识别失败：' + event.error);
+                    }
+                };
+                
+                recognition.onend = function() {
+                    console.log('语音识别已结束');
+                    if (isRecording) {
+                        resetRecordingState();
+                    }
+                };
+                
+                isRecognitionInitialized = true;
+                console.log('语音识别初始化完成');
+            } else {
+                showFeedback('您的浏览器不支持语音识别，请使用Chrome或Edge浏览器');
+            }
+        }
+        
+        // 开始录音
+        function startRecording() {
+            // 防止重复启动
+            if (isRecording) {
+                console.warn('录音已经在进行中');
+                return;
+            }
+            
+            // 确保识别器已初始化
+            if (!recognition) {
+                initRecognition();
+            }
+            
+            // 如果初始化失败（浏览器不支持），直接返回
+            if (!recognition) {
+                return;
+            }
+            
+            try {
+                recognition.start();
+                console.log('尝试启动录音...');
+            } catch (error) {
+                console.error('启动录音失败:', error);
+                showFeedback('无法启动录音：' + error.message);
+                resetRecordingState();
+            }
+        }
+        
+        // 停止录音
+        function stopRecording() {
+            if (!isRecording || !recognition) {
+                return;
+            }
+            
+            try {
+                recognition.stop();
+                console.log('停止录音');
+            } catch (error) {
+                console.warn('停止录音时出错:', error);
+            }
+            // 状态会在 onend 回调中重置
+        }
+        
+        // 显示语音文字显示区域
+        function showVoiceTranscript(text) {
+            const transcriptDiv = document.getElementById('voiceTranscript');
+            const textDiv = document.getElementById('transcriptText');
+            
+            transcriptDiv.classList.add('active');
+            textDiv.textContent = text || '...';
+            textDiv.classList.remove('final');
+        }
+        
+        // 更新语音文字显示
+        function updateVoiceTranscript(text, isFinal) {
+            const textDiv = document.getElementById('transcriptText');
+            
+            if (textDiv) {
+                textDiv.textContent = text || '...';
+                
+                if (isFinal) {
+                    textDiv.classList.add('final');
+                } else {
+                    textDiv.classList.remove('final');
+                }
+            }
+        }
+        
+        // 隐藏语音文字显示区域
+        function hideVoiceTranscript() {
+            const transcriptDiv = document.getElementById('voiceTranscript');
+            if (transcriptDiv) {
+                transcriptDiv.classList.remove('active');
+            }
+        }
+        
+        // 更新录音UI
+        function updateRecordingUI(isRecording) {
+            const micIcon = document.getElementById('micIcon');
+            const recordingIndicator = document.getElementById('recordingIndicator');
+            const voiceHint = document.getElementById('voiceHint');
+            const voiceButton = document.getElementById('voiceButton');
+            
+            if (isRecording) {
+                micIcon.classList.add('recording');
+                recordingIndicator.classList.add('active');
+                voiceHint.textContent = '松开发送';
+                voiceButton.style.background = 'linear-gradient(135deg, #ff4444, #cc0000)';
+            } else {
+                micIcon.classList.remove('recording');
+                recordingIndicator.classList.remove('active');
+                voiceHint.textContent = '按住按钮说话';
+                voiceButton.style.background = 'linear-gradient(135deg, #4CAF50, #45a049)';
+                hideVoiceTranscript(); // 停止录音时隐藏文字显示
+            }
+        }
+        
+        // 处理语音输入
+        async function processVoiceInput(text) {
+            if (!text || text.trim() === '') {
+                showFeedback('没有检测到语音，请重试');
+                return;
+            }
+            
+            showFeedback(`您说：${text}`);
+            
+            try {
+                showFeedback('正在处理您的问题...');
+                const answer = await AIHealthAPI.sendMessage(text);
+                speakAnswer(answer); // 播放AI回答（包含文字显示）
+            } catch (error) {
+                showFeedback(`请求失败：${error.message}\n请在登录页面配置API设置`);
+            }
+        }
+        
+        // 在用户首次点击语音按钮时初始化语音识别（浏览器安全策略要求）
+        
+        // 文字输入功能
+        async function openTextInput() {
+            const text = await customPrompt('请输入您的问题：', '输入您想咨询的内容...');
+            if (text) {
+                showFeedback('正在处理您的问题...');
+                
+                try {
+                    const answer = await AIHealthAPI.sendMessage(text);
+                    speakAnswer(answer); // 播放AI回答（包含文字显示）
+                } catch (error) {
+                    showFeedback(`请求失败：${error.message}\n请在登录页面配置API设置`);
+                }
+            }
+        }
+        
+        // 当前选中的联系人
+        let currentContact = null;
+        
+        // 连线子女功能 - 打开通讯录
+        function connectWithFamily() {
+            openContactModal();
+        }
+        
+        // 打开通讯录模态框
+        function openContactModal() {
+            const contactModal = document.getElementById('contact-modal');
+            contactModal.style.display = 'block';
+            loadContacts();
+        }
+        
+        // 关闭通讯录模态框
+        function closeContactModal() {
+            const contactModal = document.getElementById('contact-modal');
+            contactModal.style.display = 'none';
+        }
+        
+        // 加载联系人列表
+        function loadContacts() {
+            const contactList = document.getElementById('contact-list');
+            const contacts = getContacts();
+            
+            if (contacts.length === 0) {
+                contactList.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">暂无联系人，点击右上角添加</div>';
+                return;
+            }
+            
+            contactList.innerHTML = contacts.map((contact, index) => `
+                <div class="contact-item" onclick="confirmCall('${index}')">
+                    <div class="contact-icon">👤</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name}</div>
+                        <div class="contact-phone">${contact.phone}</div>
+                    </div>
+                    <div class="contact-delete" onclick="event.stopPropagation(); deleteContact(${index})">🗑️</div>
+                </div>
+            `).join('');
+        }
+        
+        // 获取联系人列表
+        function getContacts() {
+            const contacts = localStorage.getItem('familyContacts');
+            return contacts ? JSON.parse(contacts) : [];
+        }
+        
+        // 保存联系人列表
+        function saveContacts(contacts) {
+            localStorage.setItem('familyContacts', JSON.stringify(contacts));
+        }
+        
+        // 添加联系人
+        async function addContact() {
+            const name = await customPrompt('请输入联系人姓名', '如：张三');
+            if (!name) return;
+            
+            const phone = await customPrompt('请输入联系电话', '如：13800138000');
+            if (!phone) return;
+            
+            const contacts = getContacts();
+            contacts.push({ name, phone });
+            saveContacts(contacts);
+            loadContacts();
+            showFeedback('联系人添加成功！');
+        }
+        
+        // 删除联系人
+        function deleteContact(index) {
+            if (!confirm('确定要删除这个联系人吗？')) return;
+            
+            const contacts = getContacts();
+            contacts.splice(index, 1);
+            saveContacts(contacts);
+            loadContacts();
+            showFeedback('联系人已删除');
+        }
+        
+        // 确认连线对话框
+        function confirmCall(index) {
+            const contacts = getContacts();
+            currentContact = contacts[index];
+            
+            const confirmModal = document.getElementById('confirm-call-modal');
+            document.getElementById('confirm-call-title').textContent = `确认连线 ${currentContact.name}？`;
+            document.getElementById('confirm-call-phone').textContent = currentContact.phone;
+            confirmModal.style.display = 'block';
+        }
+        
+        // 关闭确认连线对话框
+        function closeConfirmCall() {
+            const confirmModal = document.getElementById('confirm-call-modal');
+            confirmModal.style.display = 'none';
+            currentContact = null;
+        }
+        
+        // 执行连线
+        function makeCall() {
+            if (!currentContact) return;
+            
+            closeConfirmCall();
+            closeContactModal();
+            
+            showFeedback(`正在拨打 ${currentContact.name} 的电话...`);
+            
+            setTimeout(() => {
+                showFeedback(`已成功连线 ${currentContact.name}！\n电话：${currentContact.phone}`);
+            }, 2000);
+            
+            currentContact = null;
+        }
+        
+        // 线上问诊功能
+        function showDoctorList() {
+            showFeedback('正在加载医生列表...');
+            
+            setTimeout(() => {
+                showFeedback('医生列表已加载\n1. 王医生 - 内科\n2. 李医生 - 儿科\n3. 张医生 - 外科\n4. 刘医生 - 心理科');
+            }, 1500);
+        }
+        
+        async function bookAppointment() {
+            showFeedback('正在进入预约系统...');
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            const doctor = await customPrompt('请选择医生编号', '输入数字 1-4');
+            if (doctor) {
+                const time = await customPrompt('请选择预约时间', '格式：年-月-日 时:分');
+                if (time) {
+                    showFeedback('预约成功！\n医生：' + ['王医生', '李医生', '张医生', '刘医生'][doctor-1] + '\n时间：' + time);
+                }
+            }
+        }
+        
+        async function onlineConsultation() {
+            showFeedback('正在进入在线咨询...');
+            
+            try {
+                const question = await customPrompt('请输入您的健康问题：', '描述您的健康状况...');
+                if (question) {
+                    showFeedback('正在为您咨询医生...');
+                    const answer = await AIHealthAPI.sendMessage(question);
+                    speakAnswer(answer); // 播放医生回答（包含文字显示）
+                }
+            } catch (error) {
+                showFeedback(`咨询失败：${error.message}\n请在登录页面配置API设置`);
+            }
+        }
+        
+        function viewConsultationRecords() {
+            showFeedback('正在加载问诊记录...');
+            
+            setTimeout(() => {
+                showFeedback('问诊记录\n1. 2026-04-01 - 王医生 - 内科\n2. 2026-03-15 - 李医生 - 儿科\n3. 2026-03-01 - 张医生 - 外科');
+            }, 1500);
+        }
+        
+        // 功能模块切换
+        function toggleFeature(featureId) {
+            const feature = document.getElementById(featureId);
+            feature.classList.toggle('active');
+            
+            // 模拟功能切换
+            showFeedback(`${feature.querySelector('.feature-text').textContent} ${feature.classList.contains('active') ? '已开启' : '已关闭'}`);
+        }
+        
+        // 适老化设置
+        let fontSize = 16; // 基础字体大小
+        let isBlueLightMode = false;
+        let isVoicePromptEnabled = true;
+        
+        // 初始化角色性格显示
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentPersonality = AIHealthAPI.getPersonality();
+            updatePersonalityButtons(currentPersonality);
+        });
+        
+        // 设置角色性格
+        function setPersonality(personality) {
+            const success = AIHealthAPI.setPersonality(personality);
+            if (success) {
+                updatePersonalityButtons(personality);
+                const personalityName = personality === 'old_friend' ? '老朋友' : '小伴';
+                showFeedback(`角色性格已切换为：${personalityName}`);
+            }
+        }
+        
+        // 更新角色性格按钮状态
+        function updatePersonalityButtons(personality) {
+            const btnOldFriend = document.getElementById('personalityOldFriend');
+            const btnXiaoban = document.getElementById('personalityXiaoban');
+            
+            btnOldFriend.classList.remove('active');
+            btnXiaoban.classList.remove('active');
+            
+            if (personality === 'old_friend') {
+                btnOldFriend.classList.add('active');
+            } else {
+                btnXiaoban.classList.add('active');
+            }
+        }
+        
+        // 字体大小调整
+        function adjustFontSize(direction) {
+            const fontSizeDisplay = document.getElementById('fontSizeDisplay');
+            const fontSizes = [14, 16, 18, 20];
+            let currentIndex = fontSizes.indexOf(fontSize);
+            
+            currentIndex = (currentIndex + direction + fontSizes.length) % fontSizes.length;
+            fontSize = fontSizes[currentIndex];
+            
+            // 更新字体大小
+            document.body.style.fontSize = fontSize + 'px';
+            
+            // 更新显示
+            const sizeLabels = ['小', '中', '大', '特大'];
+            fontSizeDisplay.textContent = sizeLabels[currentIndex];
+            
+            showFeedback(`字体大小已调整为${sizeLabels[currentIndex]}`);
+        }
+        
+        // 防蓝光模式
+        function toggleBlueLightMode() {
+            const blueLightToggle = document.getElementById('blueLightToggle');
+            isBlueLightMode = !isBlueLightMode;
+            
+            if (isBlueLightMode) {
+                blueLightToggle.classList.add('active');
+                document.body.style.filter = 'sepia(0.3)';
+                showFeedback('防蓝光模式已开启');
+            } else {
+                blueLightToggle.classList.remove('active');
+                document.body.style.filter = 'none';
+                showFeedback('防蓝光模式已关闭');
+            }
+        }
+        
+        // 语音提示
+        function toggleVoicePrompt() {
+            const voicePromptToggle = document.getElementById('voicePromptToggle');
+            isVoicePromptEnabled = !isVoicePromptEnabled;
+            
+            if (isVoicePromptEnabled) {
+                voicePromptToggle.classList.add('active');
+                showFeedback('语音提示已开启');
+            } else {
+                voicePromptToggle.classList.remove('active');
+                showFeedback('语音提示已关闭');
+            }
+        }
+        
+        // 操作反馈功能
+        function showFeedback(message, duration = 2000) {
+            // 创建反馈元素
+            const feedback = document.createElement('div');
+            feedback.style.position = 'fixed';
+            feedback.style.top = '50%';
+            feedback.style.left = '50%';
+            feedback.style.transform = 'translate(-50%, -50%)';
+            feedback.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            feedback.style.color = 'white';
+            feedback.style.padding = '20px 30px';
+            feedback.style.borderRadius = '12px';
+            feedback.style.fontSize = '1.125em';
+            feedback.style.fontWeight = '600';
+            feedback.style.zIndex = '1000';
+            feedback.style.opacity = '0';
+            feedback.style.transition = 'opacity 0.3s ease';
+            feedback.textContent = message;
+            
+            document.body.appendChild(feedback);
+            
+            // 显示反馈
+            setTimeout(() => {
+                feedback.style.opacity = '1';
+            }, 10);
+            
+            // 隐藏反馈
+            setTimeout(() => {
+                feedback.style.opacity = '0';
+                setTimeout(() => {
+                    feedback.remove();
+                }, 300);
+            }, duration);
+        }
+        
+        // 语音播报功能（仅用于API回答）
+        function speakAnswer(text) {
+            if ('speechSynthesis' in window) {
+                // 停止当前正在播放的语音
+                speechSynthesis.cancel();
+                
+                const speech = new SpeechSynthesisUtterance(text);
+                speech.lang = 'zh-CN';
+                speech.rate = 0.95; // 语速接近自然说话速度
+                speech.pitch = 1.1; // 稍微提高音调，让声音更亲切
+                speech.volume = 0.9; // 音量稍低，更舒适
+                
+                // 选择更自然的中文女声
+                const voices = speechSynthesis.getVoices();
+                let selectedVoice = null;
+                
+                // 优先选择中文女声
+                for (let voice of voices) {
+                    if (voice.lang === 'zh-CN' && voice.name.includes('Female')) {
+                        selectedVoice = voice;
+                        break;
+                    }
+                }
+                
+                // 如果没有找到女声，尝试其他中文语音
+                if (!selectedVoice) {
+                    for (let voice of voices) {
+                        if (voice.lang === 'zh-CN') {
+                            selectedVoice = voice;
+                            break;
+                        }
+                    }
+                }
+                
+                // 如果找到合适的语音，使用它
+                if (selectedVoice) {
+                    speech.voice = selectedVoice;
+                }
+                
+                // 获取当前角色性格并显示虚拟角色和聊天气泡
+                const personality = AIHealthAPI.getPersonality() || 'old_friend';
+                showCharacter(personality, text);
+                
+                // 语音播放完成后的回调
+                speech.onend = function() {
+                    // 语音播放完成后延迟2秒再隐藏
+                    setTimeout(() => {
+                        hideCharacter();
+                    }, 2000);
+                };
+                
+                speechSynthesis.speak(speech);
+            } else {
+                // 如果不支持语音合成，显示聊天气泡5秒
+                const personality = AIHealthAPI.getPersonality() || 'old_friend';
+                showCharacter(personality, text);
+                setTimeout(() => {
+                    hideCharacter();
+                }, 5000);
+            }
+        }
+        
+        // 显示悬浮数字人和聊天气泡
+        function showCharacter(personality, text) {
+            const avatar = document.getElementById('characterAvatar');
+            const image = document.getElementById('characterImage');
+            const bubble = document.getElementById('characterBubble');
+            
+            // 移除之前的角色类
+            image.classList.remove('old_friend', 'xiaoban');
+            
+            // 设置当前角色
+            image.classList.add(personality);
+            
+            // 设置聊天气泡内容
+            bubble.textContent = text;
+            
+            // 显示数字人和气泡
+            avatar.classList.add('active');
+            bubble.classList.add('active');
+        }
+        
+        // 隐藏悬浮数字人和聊天气泡
+        function hideCharacter() {
+            const avatar = document.getElementById('characterAvatar');
+            const bubble = document.getElementById('characterBubble');
+            avatar.classList.remove('active');
+            bubble.classList.remove('active');
+        }
+        
+        // 初始化
+        window.onload = function() {
+            // 初始化字体大小
+            document.body.style.fontSize = fontSize + 'px';
+            
+            // 加载API设置
+            AIHealthAPI.loadSettings();
+            
+            // 显示欢迎消息
+            setTimeout(() => {
+                showFeedback('欢迎使用长者情感陪伴助手');
+            }, 1000);
+        };
+    </script>
+</body>
+</html>

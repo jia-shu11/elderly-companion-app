@@ -1,0 +1,865 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>养老情感陪伴助手 - 家属端</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        background: linear-gradient(180deg, #fef3f2 0%, #f5f3ff 50%, #f0fdf4 100%);
+        color: #333;
+        transition: opacity 0.5s ease;
+        display: flex;
+        justify-content: center;
+        align-items: flex-start;
+        min-height: 100vh;
+        overflow-x: hidden;
+        padding: 10px;
+        padding-top: env(safe-area-inset-top);
+        margin: 0;
+        width: 100%;
+      }
+      
+      .app {
+        width: calc(100% - 20px);
+        max-width: 390px;
+        height: 844px;
+        background-color: white;
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        border-radius: 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+        box-sizing: border-box;
+        margin-top: 0;
+      }
+      
+      /* 顶部导航栏 - 简洁头部 */
+      .top-nav {
+        height: auto;
+        background: linear-gradient(135deg, #C6B8E3 0%, #CBBAC7 100%);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 54px 20px 25px;
+        padding-top: calc(env(safe-area-inset-top) + 30px);
+        border-bottom: none;
+        border-radius: 32px 32px 0 0;
+        position: relative;
+        z-index: 10;
+      }
+      
+      .greeting-section {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        width: 100%;
+      }
+      
+      .user-avatar {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fef3f2 0%, #f5f3ff 100%);
+        border: 3px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        cursor: pointer;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .user-avatar:hover {
+        transform: scale(1.08);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+      }
+      
+      .user-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .avatar-edit-icon {
+        position: absolute;
+        bottom: -5px;
+        right: -5px;
+        width: 24px;
+        height: 24px;
+        background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+        border-radius: 50%;
+        border: 2px solid white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        color: white;
+        box-shadow: 0 2px 6px rgba(139, 92, 246, 0.4);
+      }
+      
+      .user-info {
+        display: flex;
+        flex-direction: column;
+      }
+      
+      .greeting-text {
+        font-size: 0.875em;
+        color: rgba(255, 255, 255, 0.85);
+        margin-bottom: 4px;
+      }
+      
+      .user-name {
+        font-size: 1.375em;
+        font-weight: 600;
+        color: white;
+      }
+      
+      .back-button {
+        position: absolute;
+        top: 55px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        border: none;
+        border-radius: 12px;
+        padding: 8px 16px;
+        font-size: 0.875em;
+        font-weight: 500;
+        color: white;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .back-button:hover {
+        background: rgba(255, 255, 255, 0.3);
+        transform: translateY(-2px);
+      }
+      
+      /* 编辑资料模态框 */
+      .profile-modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        animation: fadeIn 0.3s ease;
+      }
+      
+      .profile-modal.active {
+        display: flex;
+      }
+      
+      @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+      }
+      
+      .modal-content {
+        background-color: white;
+        border-radius: 24px;
+        padding: 30px;
+        width: 90%;
+        max-width: 350px;
+        animation: slideUp 0.3s ease;
+      }
+      
+      @keyframes slideUp {
+        from { transform: translateY(20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+      }
+      
+      .modal-title {
+        font-size: 1.25em;
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 25px;
+        color: #333;
+      }
+      
+      .avatar-upload-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 25px;
+      }
+      
+      .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #E8DFEE 0%, #DFD4E3 100%);
+        border: 4px solid #C6B8E3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 40px;
+        margin-bottom: 15px;
+        overflow: hidden;
+      }
+      
+      .avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      
+      .upload-btn {
+        background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+      
+      .upload-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+      }
+      
+      .upload-btn:active {
+        transform: scale(0.98);
+      }
+      
+      #avatarInput {
+        display: none;
+      }
+      
+      .form-group {
+        margin-bottom: 20px;
+      }
+      
+      .form-label {
+        font-size: 0.875em;
+        font-weight: 500;
+        color: #64748b;
+        margin-bottom: 8px;
+        display: block;
+      }
+      
+      .form-input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 1em;
+        outline: none;
+        transition: border-color 0.3s ease;
+        box-sizing: border-box;
+      }
+      
+      .form-input:focus {
+        border-color: #a78bfa;
+      }
+      
+      .modal-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+      }
+      
+      .modal-btn {
+        flex: 1;
+        padding: 14px;
+        border: none;
+        border-radius: 12px;
+        font-size: 1em;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+      }
+      
+      .modal-btn.cancel {
+        background-color: #f1f5f9;
+        color: #64748b;
+      }
+      
+      .modal-btn.cancel:hover {
+        background-color: #e2e8f0;
+      }
+      
+      .modal-btn.confirm {
+        background: linear-gradient(135deg, #CBBAC7 0%, #BAA8B8 100%);
+        color: white;
+        box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+      }
+      
+      .modal-btn.confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+      }
+      
+      /* 顶部资讯滚动区域 */
+      .news-section {
+        position: relative;
+        height: 120px;
+        background-color: #f0f8ff;
+        overflow: hidden;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      
+      .news-container {
+        display: flex;
+        height: 100%;
+        transition: transform 0.5s ease;
+        width: 100%;
+      }
+      
+      .news-item {
+        min-width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0 15px;
+        box-sizing: border-box;
+      }
+      
+      .news-nav {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 30px;
+        height: 30px;
+        background-color: rgba(255, 255, 255, 0.8);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      
+      .news-nav.left {
+        left: 10px;
+      }
+      
+      .news-nav.right {
+        right: 10px;
+      }
+      
+      /* 功能卡片区域 */
+      .features-section {
+        padding: 15px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+      
+      .features-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        width: 100%;
+      }
+      
+      /* 大号卡片 */
+      .feature-card-large {
+        grid-column: span 2;
+        background: linear-gradient(135deg, #C6B8E3 0%, #B8A5D9 100%);
+        border-radius: 24px;
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 12px 32px rgba(139, 92, 246, 0.35);
+        color: white;
+        min-height: 140px;
+      }
+      
+      .feature-card-large:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 40px rgba(139, 92, 246, 0.45);
+      }
+      
+      .feature-card-large .card-icon {
+        font-size: 36px;
+        margin-bottom: 10px;
+      }
+      
+      .feature-card-large .card-text {
+        font-size: 1.125em;
+        font-weight: 600;
+      }
+      
+      /* 中号卡片 */
+      .feature-card-medium {
+        background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+        border-radius: 20px;
+        padding: 22px 15px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.05);
+        min-height: 120px;
+      }
+      
+      .feature-card-medium:hover {
+        transform: translateY(-4px) scale(1.02);
+        box-shadow: 0 10px 24px rgba(139, 92, 246, 0.15);
+      }
+      
+      .feature-card-medium .card-icon {
+        font-size: 28px;
+        margin-bottom: 8px;
+      }
+      
+      .feature-card-medium .card-text {
+        font-size: 1em;
+        font-weight: 600;
+        color: #333333;
+        text-align: center;
+      }
+      
+      /* 中号卡片独特颜色 */
+      .feature-card-medium.card-heart-rate {
+        background: linear-gradient(145deg, #EDE4EA 0%, #E3D9DF 100%);
+      }
+      
+      .feature-card-medium.card-mental-health {
+        background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+      }
+      
+      .feature-card-medium.card-sleep {
+        background: linear-gradient(145deg, #F0F0F1 0%, #E8E8E9 100%);
+      }
+      
+      .feature-card-medium.card-diet {
+        background: linear-gradient(145deg, #E5DDED 0%, #DBD0E3 100%);
+      }
+      
+      /* 小号卡片 */
+      .feature-card-small {
+        background: linear-gradient(145deg, #D5DAE9 0%, #C8CEDB 100%);
+        border-radius: 16px;
+        padding: 16px 12px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        min-height: 100px;
+        
+        &.card-privacy {
+          background: linear-gradient(145deg, #E5DDED 0%, #DBD0E3 100%);
+        }
+        
+        &.card-activity {
+          background: linear-gradient(145deg, #E8EAEF 0%, #DFE2E8 100%);
+        }
+        
+        &.card-schedule {
+          background: linear-gradient(145deg, #EDE4EA 0%, #E3D9DF 100%);
+        }
+        
+        &.card-contact-family {
+          background: linear-gradient(145deg, #F0F0F1 0%, #E8E8E9 100%);
+        }
+      }
+      
+      .feature-card-small:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(139, 92, 246, 0.12);
+      }
+      
+      .feature-card-small .card-icon {
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
+      
+      .feature-card-small .card-text {
+        font-size: 0.875em;
+        font-weight: 500;
+        color: #64748b;
+        text-align: center;
+      }
+      
+      /* 月报区域 */
+      .report-section {
+        padding: 0 20px 20px;
+      }
+      
+      .report-card {
+        background: linear-gradient(135deg, #CBBAC7 0%, #BAA8B8 100%);
+        border-radius: 20px;
+        padding: 25px;
+        text-align: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.3);
+        transition: all 0.3s ease;
+        color: white;
+      }
+      
+      .report-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 12px 32px rgba(139, 92, 246, 0.4);
+      }
+      
+      .report-card h3 {
+        margin: 0;
+        font-size: 1.125em;
+        font-weight: 600;
+      }
+      
+      /* 知识推送区域 */
+      .knowledge-section {
+        padding: 0 20px 80px;
+        max-height: 220px;
+        overflow-y: auto;
+      }
+      
+      .knowledge-item {
+        background: linear-gradient(145deg, #FCFCFD 0%, #F5F5F6 100%);
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+        transition: all 0.3s ease;
+      }
+      
+      .knowledge-item:hover {
+        transform: translateX(5px);
+        box-shadow: 0 6px 16px rgba(139, 92, 246, 0.1);
+      }
+      
+      .knowledge-title {
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #333333;
+      }
+      
+      .knowledge-content {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.5;
+      }
+      
+      /* 底部菜单 */
+      .bottom-menu {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background-color: white;
+        border-top: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 20px;
+      }
+      
+      .menu-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        font-size: 0.875em;
+        cursor: pointer;
+        min-width: 80px;
+        gap: 6px;
+        transition: all 0.3s ease;
+      }
+      
+      .menu-item:hover {
+        transform: translateY(-2px);
+      }
+      
+      .menu-icon {
+        font-size: 24px;
+        color: #666666;
+        transition: color 0.3s ease;
+      }
+      
+      .menu-label {
+        color: #666666;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      
+      .menu-item.active .menu-icon,
+      .menu-item.active .menu-label {
+        color: #8b5cf6;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <!-- 顶部导航栏 - 简洁头部 -->
+      <div class="top-nav">
+        <button class="back-button" onclick="navigateToPage('index.html')">返回</button>
+        <div class="greeting-section">
+          <div class="user-avatar" id="userAvatar" onclick="openProfileModal()">
+            <span id="avatarEmoji">👨‍💼</span>
+            <div class="avatar-edit-icon">✏️</div>
+          </div>
+          <div class="user-info">
+            <div class="greeting-text">下午好</div>
+            <div class="user-name" id="userName">张先生</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 顶部资讯滚动区域 -->
+      <div class="news-section">
+        <div class="news-container" id="newsContainer">
+          <div class="news-item">
+            <div>
+              <h3>社区消息</h3>
+              <p>本周社区将举办健康讲座，欢迎参加</p >
+            </div>
+          </div>
+          <div class="news-item">
+            <div>
+              <h3>健康科普</h3>
+              <p>长者秋季养生指南，助您健康度过秋天</p >
+            </div>
+          </div>
+          <div class="news-item">
+            <div>
+              <h3>活动通知</h3>
+              <p>下周将组织户外健身活动</p >
+            </div>
+          </div>
+        </div>
+        <div class="news-nav left" onclick="scrollNews(-1)">&lt;</div>
+        <div class="news-nav right" onclick="scrollNews(1)">&gt;</div>
+      </div>
+      
+      <!-- 编辑资料模态框 -->
+      <div id="profile-modal" class="profile-modal">
+        <div class="modal-content">
+          <div class="modal-title">编辑个人资料</div>
+          <div class="avatar-upload-section">
+            <div class="avatar-preview" id="avatarPreview">👨‍💼</div>
+            <label for="avatarInput" class="upload-btn">
+              <input type="file" id="avatarInput" accept="image/*" onchange="handleAvatarUpload(event)">
+              上传头像
+            </label>
+          </div>
+          <div class="form-group">
+            <label class="form-label">昵称</label>
+            <input type="text" class="form-input" id="nicknameInput" placeholder="请输入昵称">
+          </div>
+          <div class="modal-actions">
+            <button class="modal-btn cancel" onclick="closeProfileModal()">取消</button>
+            <button class="modal-btn confirm" onclick="saveProfile()">保存</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 功能卡片区域 -->
+      <div class="features-section">
+        <div class="features-grid">
+          <!-- 大号卡片 - 月报 -->
+          <div class="feature-card-large" onclick="viewReport()">
+            <div class="card-icon">📊</div>
+            <div class="card-text">月度报告</div>
+          </div>
+          
+          <!-- 中号卡片 -->
+          <div class="feature-card-medium card-heart-rate">
+            <div class="card-icon">❤️</div>
+            <div class="card-text">心率监测</div>
+          </div>
+          <div class="feature-card-medium card-mental-health">
+            <div class="card-icon">🧠</div>
+            <div class="card-text">心理健康</div>
+          </div>
+          
+          <!-- 小号卡片 -->
+          <div class="feature-card-small card-privacy">
+            <div class="card-icon">🔒</div>
+            <div class="card-text">隐私设置</div>
+          </div>
+          <div class="feature-card-small card-activity">
+            <div class="card-icon">🏃</div>
+            <div class="card-text">活动记录</div>
+          </div>
+          
+          <!-- 中号卡片 -->
+          <div class="feature-card-medium card-sleep">
+            <div class="card-icon">💤</div>
+            <div class="card-text">睡眠监测</div>
+          </div>
+          <div class="feature-card-medium card-diet">
+            <div class="card-icon">🍎</div>
+            <div class="card-text">饮食记录</div>
+          </div>
+          
+          <!-- 小号卡片 -->
+          <div class="feature-card-small card-schedule">
+            <div class="card-icon">📅</div>
+            <div class="card-text">日程管理</div>
+          </div>
+          <div class="feature-card-small card-contact-family">
+            <div class="card-icon">📞</div>
+            <div class="card-text">联系家人</div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- 知识推送区域 -->
+      <div class="knowledge-section">
+        <div class="knowledge-item">
+          <div class="knowledge-title">长者如何保持心理健康</div>
+          <div class="knowledge-content">保持社交活动，培养兴趣爱好，定期体检...</div>
+        </div>
+        <div class="knowledge-item">
+          <div class="knowledge-title">适合长者的运动方式</div>
+          <div class="knowledge-content">散步、太极、瑜伽等低强度运动有助于保持健康...</div>
+        </div>
+        <div class="knowledge-item">
+          <div class="knowledge-title">长者饮食注意事项</div>
+          <div class="knowledge-content">均衡营养，多吃蔬菜水果，适量摄入蛋白质...</div>
+        </div>
+      </div>
+    </div>
+    
+    <script>
+      // 页面跳转函数
+      function navigateToPage(url) {
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.5s ease';
+        
+        setTimeout(() => {
+          window.location.href = url;
+        }, 500);
+      }
+      
+      // 编辑资料功能
+      let currentAvatarData = null;
+      
+      function openProfileModal() {
+        const modal = document.getElementById('profile-modal');
+        const nicknameInput = document.getElementById('nicknameInput');
+        const avatarPreview = document.getElementById('avatarPreview');
+        const userName = document.getElementById('userName');
+        const avatarEmoji = document.getElementById('avatarEmoji');
+        
+        // 填充当前数据
+        nicknameInput.value = userName.textContent;
+        
+        // 检查是否有已上传的头像
+        if (currentAvatarData) {
+          avatarPreview.innerHTML = `<img src="${currentAvatarData}" alt="头像">`;
+        } else if (avatarEmoji) {
+          avatarPreview.textContent = avatarEmoji.textContent;
+        }
+        
+        modal.classList.add('active');
+      }
+      
+      function closeProfileModal() {
+        const modal = document.getElementById('profile-modal');
+        modal.classList.remove('active');
+      }
+      
+      function handleAvatarUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const avatarPreview = document.getElementById('avatarPreview');
+            avatarPreview.innerHTML = `<img src="${e.target.result}" alt="头像">`;
+            currentAvatarData = e.target.result;
+          };
+          reader.readAsDataURL(file);
+        }
+      }
+      
+      function saveProfile() {
+        const nicknameInput = document.getElementById('nicknameInput');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+        const avatarEmoji = document.getElementById('avatarEmoji');
+        
+        // 保存昵称
+        if (nicknameInput.value.trim()) {
+          userName.textContent = nicknameInput.value.trim();
+          localStorage.setItem('familyUserName', nicknameInput.value.trim());
+        }
+        
+        // 保存头像
+        if (currentAvatarData) {
+          userAvatar.innerHTML = `<img src="${currentAvatarData}" alt="头像"><div class="avatar-edit-icon">✏️</div>`;
+          localStorage.setItem('familyAvatarData', currentAvatarData);
+        }
+        
+        // 关闭模态框
+        closeProfileModal();
+      }
+      
+      // 加载保存的用户资料
+      function loadProfile() {
+        const savedName = localStorage.getItem('familyUserName');
+        const savedAvatar = localStorage.getItem('familyAvatarData');
+        const userName = document.getElementById('userName');
+        const userAvatar = document.getElementById('userAvatar');
+        
+        if (savedName) {
+          userName.textContent = savedName;
+        }
+        
+        if (savedAvatar) {
+          currentAvatarData = savedAvatar;
+          userAvatar.innerHTML = `<img src="${savedAvatar}" alt="头像"><div class="avatar-edit-icon">✏️</div>`;
+        }
+      }
+      
+      // 页面加载时初始化
+      document.addEventListener('DOMContentLoaded', function() {
+        loadProfile();
+      });
+      
+      let currentNewsIndex = 0;
+      const newsContainer = document.getElementById('newsContainer');
+      const newsItems = newsContainer.children;
+      
+      function scrollNews(direction) {
+        currentNewsIndex = (currentNewsIndex + direction + newsItems.length) % newsItems.length;
+        updateNewsPosition();
+      }
+      
+      function updateNewsPosition() {
+        newsContainer.style.transform = `translateX(-${currentNewsIndex * 100}%)`;
+      }
+      
+      // 自动滚动
+      setInterval(() => {
+        scrollNews(1);
+      }, 3000);
+    </script>
+  </body>
+</html>

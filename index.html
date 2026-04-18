@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>养老情感陪伴助手</title>
+    <style>
+        /* 全局样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'PingFang SC', 'Helvetica Neue', Arial, sans-serif;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            transition: background-color 0.5s ease;
+        }
+
+        /* 手机容器，适配9:21比例 */
+        .phone-container {
+            width: 375px;
+            height: 875px; /* 375 * 2.333 (约9:21) */
+            background: linear-gradient(145deg, #E8DFEE 0%, #DFD4E3 100%);
+            border-radius: 40px;
+            box-shadow: 0 10px 30px rgba(186, 168, 184, 0.3);
+            padding: 60px 30px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s ease;
+        }
+
+        /* 标题 */
+        .app-title {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        .app-title h1 {
+            font-size: 28px;
+            font-weight: 300;
+            color: #333;
+            letter-spacing: 2px;
+        }
+
+        /* 登录板块容器 */
+        .login-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            gap: 30px;
+        }
+
+        /* 登录板块 */
+        .login-section {
+            border-radius: 20px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 1px solid #eaeaea;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .login-section[data-type="user"] {
+            background: linear-gradient(145deg, #EDE4EA 0%, #E3D9DF 100%);
+            box-shadow: 0 12px 30px rgba(186, 168, 184, 0.5), 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+        
+        .login-section[data-type="family"] {
+            background: linear-gradient(145deg, #E8EAEF 0%, #DFE2E8 100%);
+            box-shadow: 0 12px 30px rgba(200, 206, 219, 0.5), 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .login-section:hover {
+            transform: translateY(-8px);
+        }
+        
+        .login-section[data-type="user"]:hover {
+            box-shadow: 0 18px 40px rgba(186, 168, 184, 0.6), 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+        
+        .login-section[data-type="family"]:hover {
+            box-shadow: 0 18px 40px rgba(200, 206, 219, 0.6), 0 6px 16px rgba(0, 0, 0, 0.08);
+        }
+
+        .login-section:active {
+            transform: translateY(-4px) scale(0.98);
+            transition: all 0.1s ease;
+        }
+        
+        .login-section[data-type="user"]:active {
+            box-shadow: 0 8px 20px rgba(219, 208, 227, 0.3);
+        }
+        
+        .login-section[data-type="family"]:active {
+            box-shadow: 0 8px 20px rgba(200, 206, 219, 0.3);
+        }
+
+        .login-section h2 {
+            font-size: 24px;
+            font-weight: 400;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .login-section p {
+            font-size: 14px;
+            color: #999;
+            letter-spacing: 1px;
+        }
+
+        /* 底部用户须知 */
+        .user-notice {
+            margin-top: 60px;
+            text-align: center;
+        }
+
+        .user-notice p {
+            font-size: 12px;
+            color: #ccc;
+            line-height: 1.6;
+            letter-spacing: 0.5px;
+        }
+
+        /* 设置按钮 */
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(145deg, #CBBAC7 0%, #BAA8B8 100%);
+            border: none;
+            cursor: pointer;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        
+        .settings-btn:hover {
+            background: linear-gradient(145deg, #CBBAC7 0%, #BAA8B8 100%);
+            transform: scale(1.05);
+        }
+
+        /* 设置模态框样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 2000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .modal-content {
+            background: linear-gradient(145deg, #FCFCFD 0%, #F5F5F6 100%);
+            margin: 10% auto;
+            padding: 24px;
+            border-radius: 16px;
+            width: 88%;
+            max-width: 400px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            color: #2c3e50;
+        }
+
+        .close {
+            color: #999;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #333;
+            background-color: #f5f5f5;
+            text-decoration: none;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 14px;
+            color: #555;
+        }
+
+        .required {
+            color: #e74c3c;
+            margin-left: 4px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px 14px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        input[type="text"]:focus {
+            border-color: #3498db;
+        }
+
+        #save-settings {
+            width: 100%;
+            background: linear-gradient(145deg, #C6B8E3 0%, #B8A5D9 100%);
+            color: #fff;
+            border: none;
+            padding: 14px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            margin-top: 12px;
+            transition: all 0.2s;
+        }
+
+        #save-settings:hover {
+            background: linear-gradient(145deg, #C6B8E3 0%, #B8A5D9 100%);
+            transform: translateY(-2px);
+        }
+
+        #save-settings:active {
+            transform: scale(0.98);
+        }
+
+        /* 响应式调整 */
+        @media (max-width: 400px) {
+            .phone-container {
+                width: 100vw;
+                height: 100vh;
+                border-radius: 0;
+                padding: 40px 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="phone-container">
+        <!-- 设置按钮 -->
+        <button class="settings-btn" onclick="openSettings()">⚙️</button>
+        
+        <!-- 应用标题 -->
+        <div class="app-title">
+            <h1 style="font-weight: bold;">牵牵</h1>
+            <p style="font-size: 18px; color: #999; margin-top: 10px; font-weight: 500; font-style: italic;">CareLink</p >
+        </div>
+
+        <!-- 登录板块 -->
+        <div class="login-container">
+            <div class="login-section" data-type="user">
+                <h2>用户</h2>
+                <p>长者用户入口</p >
+            </div>
+            <div class="login-section" data-type="family">
+                <h2>家属</h2>
+                <p>家属入口</p >
+            </div>
+        </div>
+
+        <!-- 底部用户须知 -->
+        <div class="user-notice">
+            <p>© 2026 牵牵 CareLink</p >
+            <p>用心陪伴，温暖晚年</p >
+        </div>
+    </div>
+    
+    <!-- 设置模态框 -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>API设置</h2>
+                <span class="close" onclick="closeSettings()">&times;</span>
+            </div>
+            <div class="form-group">
+                <label for="token-input">智能体唯一标识:<span class="required">*</span></label>
+                <input type="text" id="token-input" placeholder="请输入智能体唯一标识">
+            </div>
+            <div class="form-group">
+                <label for="end-user-input">用户名:<span class="required">*</span></label>
+                <input type="text" id="end-user-input" placeholder="必填，用户名">
+            </div>
+            <div class="form-group">
+                <label for="user-id-input">记忆标识:<span class="required">*</span></label>
+                <input type="text" id="user-id-input" placeholder="必填，记忆标识">
+            </div>
+            <div class="form-group">
+                <label for="upload-token-input">图片上传标识:</label>
+                <div style="display: flex; gap: 8px; align-items: flex-end;">
+                    <input type="text" id="upload-token-input" placeholder="选填，图片上传标识" readonly style="flex: 1;">
+                    <button type="button" id="edit-upload-token-btn" style="width: 120px; padding: 12px; border: none; border-radius: 8px; background-color: #3498db; color: #fff; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">修改</button>
+                </div>
+            </div>
+            <button id="save-settings">保存设置</button>
+        </div>
+    </div>
+
+    <script src="js/api.js"></script>
+    <script>
+        // 页面跳转函数
+        function navigateToPage(url) {
+            // 添加页面过渡效果
+            document.body.style.opacity = '0';
+            document.body.style.transition = 'opacity 0.5s ease';
+            
+            setTimeout(() => {
+                window.location.href = url;
+            }, 500);
+        }
+
+        // 绑定点击事件
+        document.querySelectorAll('.login-section').forEach(section => {
+            section.addEventListener('click', function() {
+                const type = this.dataset.type;
+                
+                // 添加点击时的波纹效果
+                const ripple = document.createElement('div');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = event.clientX - rect.left - size / 2;
+                const y = event.clientY - rect.top - size / 2;
+                
+                ripple.style.position = 'absolute';
+                ripple.style.left = x + 'px';
+                ripple.style.top = y + 'px';
+                ripple.style.width = size + 'px';
+                ripple.style.height = size + 'px';
+                ripple.style.borderRadius = '50%';
+                ripple.style.background = 'rgba(255, 255, 255, 0.3)';
+                ripple.style.transform = 'scale(0)';
+                ripple.style.animation = 'ripple 0.6s ease-out';
+                ripple.style.pointerEvents = 'none';
+                
+                this.appendChild(ripple);
+                
+                setTimeout(() => {
+                    ripple.remove();
+                }, 600);
+                
+                // 延迟跳转，等待波纹效果
+                setTimeout(() => {
+                    if (type === 'user') {
+                        navigateToPage('old.html');
+                    } else {
+                        navigateToPage('family.html');
+                    }
+                }, 300);
+            });
+        });
+
+        // 添加波纹动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(2);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // 设置功能
+        function openSettings() {
+            const settingsModal = document.getElementById('settings-modal');
+            const tokenInput = document.getElementById('token-input');
+            const endUserInput = document.getElementById('end-user-input');
+            const userIdInput = document.getElementById('user-id-input');
+            const uploadTokenInput = document.getElementById('upload-token-input');
+            
+            // 加载保存的设置
+            const settings = AIHealthAPI.getSettings();
+            tokenInput.value = settings.token;
+            endUserInput.value = settings.endUser;
+            userIdInput.value = settings.userId;
+            uploadTokenInput.value = settings.uploadToken;
+            
+            settingsModal.style.display = 'block';
+        }
+        
+        function closeSettings() {
+            const settingsModal = document.getElementById('settings-modal');
+            settingsModal.style.display = 'none';
+        }
+        
+        function saveSettings() {
+            const tokenInput = document.getElementById('token-input');
+            const endUserInput = document.getElementById('end-user-input');
+            const userIdInput = document.getElementById('user-id-input');
+            const uploadTokenInput = document.getElementById('upload-token-input');
+            
+            AIHealthAPI.saveSettings(
+                tokenInput.value.trim(),
+                endUserInput.value.trim(),
+                userIdInput.value.trim(),
+                uploadTokenInput.value.trim()
+            );
+            
+            alert('设置已保存');
+            closeSettings();
+        }
+        
+        function enableUploadTokenEdit() {
+            const editBtn = document.getElementById('edit-upload-token-btn');
+            const uploadTokenInput = document.getElementById('upload-token-input');
+            
+            if (editBtn.textContent === '修改') {
+                uploadTokenInput.readOnly = false;
+                uploadTokenInput.focus();
+                editBtn.textContent = '确定';
+                editBtn.style.backgroundColor = '#27ae60';
+            } else {
+                uploadTokenInput.readOnly = true;
+                editBtn.textContent = '修改';
+                editBtn.style.backgroundColor = '#3498db';
+            }
+        }
+        
+        // 点击模态框外部关闭
+        window.addEventListener('click', (e) => {
+            const settingsModal = document.getElementById('settings-modal');
+            if (e.target === settingsModal) {
+                closeSettings();
+            }
+        });
+        
+        // 绑定保存按钮事件
+        document.addEventListener('DOMContentLoaded', () => {
+            const saveBtn = document.getElementById('save-settings');
+            const editBtn = document.getElementById('edit-upload-token-btn');
+            if (saveBtn) saveBtn.addEventListener('click', saveSettings);
+            if (editBtn) editBtn.addEventListener('click', enableUploadTokenEdit);
+            
+            // 加载已保存的API设置
+            AIHealthAPI.loadSettings();
+        });
+    </script>
+</body>
+</html>
