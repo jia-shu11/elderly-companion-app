@@ -1,6 +1,7 @@
 // API配置
 const API_URL = 'https://ithink.isapientia.com/api/app/utv/v1/agent/qa';
 const UPLOAD_URL = 'https://ithink.isapientia.com/f/console/api/files/upload';
+const TTS_URL = 'http://localhost:8000/tts'; // Edge TTS API
 
 // 全局变量
 let token = '';
@@ -20,6 +21,10 @@ function loadSettings() {
         userId = settings.userId;
         uploadToken = settings.uploadToken;
     }
+    // 清除可能存在的旧TTS设置缓存，确保使用角色固定的语音参数
+    localStorage.removeItem('tts_voice');
+    localStorage.removeItem('tts_rate');
+    localStorage.removeItem('tts_pitch');
 }
 
 // 保存设置到localStorage
@@ -178,6 +183,60 @@ function loadPersonality() {
     }
 }
 
+// TTS 语音合成功能
+async function textToSpeech(text, voice = 'zh-CN-XiaoxiaoNeural', rate = '+0%', pitch = '+0Hz') {
+    try {
+        const response = await fetch(TTS_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                text: text,
+                voice: voice,
+                rate: rate,
+                pitch: pitch
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`TTS请求失败: ${response.status}`);
+        }
+
+        // 获取音频数据
+        const audioBlob = await response.blob();
+        
+        // 创建音频URL并播放
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        // 播放完成后清理
+        audio.onended = () => {
+            URL.revokeObjectURL(audioUrl);
+        };
+        
+        // 返回音频对象，允许外部控制
+        return { audio, audioUrl };
+    } catch (error) {
+        console.error('TTS错误:', error);
+        throw error;
+    }
+}
+
+// 获取可用语音列表
+async function getAvailableVoices() {
+    const voices = [
+        { id: 'zh-CN-XiaoxiaoNeural', name: '晓晓', gender: 'female', language: '中文' },
+        { id: 'zh-CN-YunyangNeural', name: '云扬', gender: 'male', language: '中文' },
+        { id: 'zh-CN-YunxiNeural', name: '云希', gender: 'male', language: '中文' },
+        { id: 'zh-CN-YunjianNeural', name: '云健', gender: 'male', language: '中文' },
+        { id: 'zh-CN-YunhaoNeural', name: '云昊', gender: 'male', language: '中文' },
+        { id: 'en-US-AriaNeural', name: 'Aria', gender: 'female', language: '英文' },
+        { id: 'en-US-GuyNeural', name: 'Guy', gender: 'male', language: '英文' }
+    ];
+    return voices;
+}
+
 // 导出函数
 window.AIHealthAPI = {
     sendMessage: sendMessageToAPI,
@@ -188,5 +247,7 @@ window.AIHealthAPI = {
     loadSettings: loadSettings,
     setPersonality: setPersonality,
     getPersonality: getPersonality,
-    loadPersonality: loadPersonality
+    loadPersonality: loadPersonality,
+    textToSpeech: textToSpeech,
+    getAvailableVoices: getAvailableVoices
 };
