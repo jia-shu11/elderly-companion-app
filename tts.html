@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edge TTS 演示</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 16px;
+            background: white;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .audio-player {
+            margin-top: 30px;
+            text-align: center;
+        }
+        audio {
+            width: 100%;
+            max-width: 600px;
+            margin-top: 15px;
+        }
+        .status {
+            margin-top: 15px;
+            padding: 15px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎤 Edge TTS 语音合成</h1>
+        
+        <div class="form-group">
+            <label for="text">输入文本:</label>
+            <textarea id="text" placeholder="请输入要转换的文本...">你好，这是Edge TTS的流畅语音</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="voice">选择语音:</label>
+            <select id="voice">
+                <option value="zh-CN-XiaoxiaoNeural">中文女声 - Xiaoxiao</option>
+                <option value="zh-CN-YunyangNeural">中文男声 - Yunyang</option>
+                <option value="zh-CN-YunxiNeural">中文男声 - Yunxi</option>
+                <option value="zh-CN-YunjianNeural">中文男声 - Yunjian</option>
+                <option value="zh-CN-YunhaoNeural">中文男声 - Yunhao</option>
+                <option value="en-US-AriaNeural">英文女声 - Aria</option>
+                <option value="en-US-GuyNeural">英文男声 - Guy</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="rate">语速:</label>
+            <input type="text" id="rate" value="+0%" placeholder="例如: +0% 或 -50%">
+        </div>
+        
+        <div class="form-group">
+            <label for="pitch">音调:</label>
+            <input type="text" id="pitch" value="+0Hz" placeholder="例如: +0Hz 或 +10Hz">
+        </div>
+        
+        <button id="generateBtn">✨ 生成语音</button>
+        
+        <div class="audio-player">
+            <div id="status"></div>
+            <audio id="audioPlayer" controls></audio>
+        </div>
+    </div>
+    
+    <script>
+        const generateBtn = document.getElementById('generateBtn');
+        const textarea = document.getElementById('text');
+        const voiceSelect = document.getElementById('voice');
+        const rateInput = document.getElementById('rate');
+        const pitchInput = document.getElementById('pitch');
+        const statusDiv = document.getElementById('status');
+        const audioPlayer = document.getElementById('audioPlayer');
+        
+        // 初始化时加载保存的设置
+        function loadSettings() {
+            const savedVoice = localStorage.getItem('tts_voice');
+            const savedRate = localStorage.getItem('tts_rate');
+            const savedPitch = localStorage.getItem('tts_pitch');
+            
+            if (savedVoice) {
+                voiceSelect.value = savedVoice;
+            }
+            if (savedRate !== null) {
+                rateInput.value = (parseInt(savedRate) >= 0 ? '+' : '') + savedRate + '%';
+            }
+            if (savedPitch !== null) {
+                pitchInput.value = (parseInt(savedPitch) >= 0 ? '+' : '') + savedPitch + 'Hz';
+            }
+        }
+        
+        // 保存设置
+        function saveSettings() {
+            const rate = rateInput.value;
+            const pitch = pitchInput.value;
+            
+            localStorage.setItem('tts_voice', voiceSelect.value);
+            localStorage.setItem('tts_rate', rate.replace('%', ''));
+            localStorage.setItem('tts_pitch', pitch.replace('Hz', ''));
+        }
+        
+        // 页面加载时初始化
+        loadSettings();
+        
+        generateBtn.addEventListener('click', async () => {
+            const text = textarea.value.trim();
+            if (!text) {
+                showStatus('请输入要转换的文本', 'error');
+                return;
+            }
+            
+            generateBtn.disabled = true;
+            showStatus('正在生成语音...');
+            
+            // 保存当前设置
+            saveSettings();
+            
+            try {
+                const response = await fetch('http://localhost:8000/tts', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        voice: voiceSelect.value,
+                        rate: rateInput.value,
+                        pitch: pitchInput.value
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const blob = await response.blob();
+                const audioUrl = URL.createObjectURL(blob);
+                
+                audioPlayer.src = audioUrl;
+                audioPlayer.style.display = 'block';
+                showStatus('语音生成成功！', 'success');
+                
+            } catch (error) {
+                console.error('Error generating speech:', error);
+                showStatus(`生成失败: ${error.message}`, 'error');
+            } finally {
+                generateBtn.disabled = false;
+            }
+        });
+        
+        function showStatus(message, type = 'info') {
+            statusDiv.textContent = message;
+            statusDiv.className = `status ${type}`;
+            statusDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
