@@ -2415,20 +2415,50 @@
             if ('speechSynthesis' in window) {
                 const speech = new SpeechSynthesisUtterance(text);
                 speech.lang = 'zh-CN';
-                speech.rate = 0.95;
-                speech.pitch = 1.1;
                 speech.volume = 0.9;
+                
+                // 根据角色性格设置语音参数
+                const personality = AIHealthAPI.getPersonality() || 'old_friend';
+                const characterVoiceSettings = {
+                    'old_friend': {
+                        rate: 0.85,  // 较慢的语速
+                        pitch: 0.9,  // 较低的音调（男声）
+                        preferMale: true
+                    },
+                    'xiaoban': {
+                        rate: 1.0,   // 正常语速
+                        pitch: 1.1,  // 较高的音调（女声）
+                        preferMale: false
+                    }
+                };
+                
+                const settings = characterVoiceSettings[personality] || characterVoiceSettings['old_friend'];
+                speech.rate = settings.rate;
+                speech.pitch = settings.pitch;
                 
                 const voices = speechSynthesis.getVoices();
                 let selectedVoice = null;
                 
-                for (let voice of voices) {
-                    if (voice.lang === 'zh-CN' && voice.name.includes('Female')) {
-                        selectedVoice = voice;
-                        break;
+                // 根据角色性格选择语音
+                if (settings.preferMale) {
+                    // 老朋友 - 优先选择男声
+                    for (let voice of voices) {
+                        if (voice.lang === 'zh-CN' && (voice.name.includes('Male') || voice.name.includes('男'))) {
+                            selectedVoice = voice;
+                            break;
+                        }
+                    }
+                } else {
+                    // 小伴 - 优先选择女声
+                    for (let voice of voices) {
+                        if (voice.lang === 'zh-CN' && (voice.name.includes('Female') || voice.name.includes('女'))) {
+                            selectedVoice = voice;
+                            break;
+                        }
                     }
                 }
                 
+                // 如果没有找到匹配性别的语音，选择任意中文语音
                 if (!selectedVoice) {
                     for (let voice of voices) {
                         if (voice.lang === 'zh-CN') {

@@ -335,6 +335,11 @@
                     <button type="button" id="edit-upload-token-btn" style="width: 120px; padding: 12px; border: none; border-radius: 8px; background-color: #3498db; color: #fff; cursor: pointer; font-size: 14px; font-weight: 500; transition: background-color 0.2s;">修改</button>
                 </div>
             </div>
+            <div class="form-group">
+                <label for="tts-url-input">TTS服务器地址:</label>
+                <input type="text" id="tts-url-input" placeholder="例如: http://192.168.1.100:8000/tts" style="flex: 1;">
+                <div style="font-size: 12px; color: #666; margin-top: 4px;">手机访问请填写电脑局域网IP地址</div>
+            </div>
             <button id="save-settings">保存设置</button>
         </div>
     </div>
@@ -432,12 +437,14 @@
             const endUserInput = document.getElementById('end-user-input');
             const userIdInput = document.getElementById('user-id-input');
             const uploadTokenInput = document.getElementById('upload-token-input');
+            const ttsUrlInput = document.getElementById('tts-url-input');
             
             AIHealthAPI.saveSettings(
                 tokenInput.value.trim(),
                 endUserInput.value.trim(),
                 userIdInput.value.trim(),
-                uploadTokenInput.value.trim()
+                uploadTokenInput.value.trim(),
+                ttsUrlInput.value.trim()
             );
             
             alert('设置已保存');
@@ -477,6 +484,15 @@
             
             // 加载已保存的API设置
             AIHealthAPI.loadSettings();
+            
+            // 加载已保存的TTS服务器地址
+            const ttsUrlInput = document.getElementById('tts-url-input');
+            if (ttsUrlInput) {
+                const savedTtsUrl = localStorage.getItem('ttsServerUrl');
+                if (savedTtsUrl) {
+                    ttsUrlInput.value = savedTtsUrl;
+                }
+            }
         });
     </script>
 </body>

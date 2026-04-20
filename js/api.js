@@ -1,7 +1,11 @@
 // API配置
 const API_URL = 'https://ithink.isapientia.com/api/app/utv/v1/agent/qa';
 const UPLOAD_URL = 'https://ithink.isapientia.com/f/console/api/files/upload';
-const TTS_URL = 'http://localhost:8000/tts'; // Edge TTS API
+// TTS URL - 优先从localStorage读取，支持手机访问
+function getTTSUrl() {
+    const saved = localStorage.getItem('ttsServerUrl');
+    return saved || 'http://localhost:8000/tts';
+}
 
 // 全局变量
 let token = '';
@@ -28,12 +32,16 @@ function loadSettings() {
 }
 
 // 保存设置到localStorage
-function saveSettingsToStorage(tokenVal, endUserVal, userIdVal, uploadTokenVal) {
+function saveSettingsToStorage(tokenVal, endUserVal, userIdVal, uploadTokenVal, ttsUrlVal) {
     token = tokenVal;
     endUser = endUserVal;
     userId = userIdVal;
     uploadToken = uploadTokenVal;
     localStorage.setItem('chatSettings', JSON.stringify({ token, endUser, userId, uploadToken }));
+    // 保存TTS服务器地址
+    if (ttsUrlVal) {
+        localStorage.setItem('ttsServerUrl', ttsUrlVal);
+    }
 }
 
 // 获取设置
@@ -186,7 +194,9 @@ function loadPersonality() {
 // TTS 语音合成功能
 async function textToSpeech(text, voice = 'zh-CN-XiaoxiaoNeural', rate = '+0%', pitch = '+0Hz') {
     try {
-        const response = await fetch(TTS_URL, {
+        // 使用动态获取的TTS URL（支持手机访问）
+        const ttsUrl = getTTSUrl();
+        const response = await fetch(ttsUrl, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -209,6 +219,8 @@ async function textToSpeech(text, voice = 'zh-CN-XiaoxiaoNeural', rate = '+0%', 
         // 创建音频URL并播放
         const audioUrl = URL.createObjectURL(audioBlob);
         const audio = new Audio(audioUrl);
+        audio.crossOrigin = 'anonymous';
+        audio.volume = 1.0;
         
         // 播放完成后清理
         audio.onended = () => {
