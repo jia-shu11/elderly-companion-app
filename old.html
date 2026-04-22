@@ -2028,6 +2028,9 @@
             
             showFeedback(`您说：${text}`);
             
+            // 保存用户提问（供家属端查看）
+            lastUserQuestion = text;
+            
             try {
                 showFeedback('正在处理您的问题...');
                 const answer = await AIHealthAPI.sendMessage(text);
@@ -2044,6 +2047,9 @@
             const text = await customPrompt('请输入您的问题：', '输入您想咨询的内容...');
             if (text) {
                 showFeedback('正在处理您的问题...');
+                
+                // 保存用户提问（供家属端查看）
+                lastUserQuestion = text;
                 
                 try {
                     const answer = await AIHealthAPI.sendMessage(text);
@@ -2198,6 +2204,10 @@
                 const question = await customPrompt('请输入您的健康问题：', '描述您的健康状况...');
                 if (question) {
                     showFeedback('正在为您咨询医生...');
+                    
+                    // 保存用户提问（供家属端查看）
+                    lastUserQuestion = question;
+                    
                     const answer = await AIHealthAPI.sendMessage(question);
                     speakAnswer(answer); // 播放医生回答（包含文字显示）
                 }
@@ -2350,6 +2360,59 @@
         let currentAudio = null;
         let currentAudioUrl = null;
         
+        // 保存互动状态到localStorage，供家属端查看
+        function saveElderStatus(lastQuestion, lastAnswer) {
+            // 获取当前日期（YYYY-MM-DD）
+            const today = new Date().toISOString().split('T')[0];
+            
+            // 获取现有的状态数据
+            const existingStatus = safeParseJSON(localStorage.getItem('carelink_elder_status'), {});
+            const existingDate = existingStatus.date || '';
+            
+            // 计算今日互动次数（如果是同一天则累加，否则重置为1）
+            let todayCount = 1;
+            if (existingDate === today && existingStatus.todayInteractionCount) {
+                todayCount = existingStatus.todayInteractionCount + 1;
+            }
+            
+            // 获取当前时间（HH:MM:SS）
+            const now = new Date();
+            const currentTime = `${now.getHours().toString().padStart(2, '0')}:${now.getMinutes().toString().padStart(2, '0')}:${now.getSeconds().toString().padStart(2, '0')}`;
+            
+            // 判断是否需要关注（根据回答内容判断）
+            const needsAttention = lastAnswer.includes('不舒服') || 
+                                   lastAnswer.includes('难受') || 
+                                   lastAnswer.includes('疼痛') || 
+                                   lastAnswer.includes('不舒服') ||
+                                   lastAnswer.includes('建议就医') ||
+                                   lastAnswer.includes('需要帮助');
+            
+            // 保存状态
+            const status = {
+                date: today,
+                todayInteractionCount: todayCount,
+                lastInteractionTime: currentTime,
+                lastQuestion: lastQuestion || '',
+                lastAnswer: lastAnswer || '',
+                needsAttention: needsAttention
+            };
+            
+            localStorage.setItem('carelink_elder_status', JSON.stringify(status));
+        }
+        
+        // 安全解析 JSON
+        function safeParseJSON(value, fallback = null) {
+            if (!value) return fallback;
+            try {
+                return JSON.parse(value);
+            } catch (error) {
+                console.warn('解析JSON失败:', error);
+                return fallback;
+            }
+        }
+        
+        let lastUserQuestion = ''; // 保存最后一次用户提问
+        
         async function speakAnswer(text) {
             // 停止当前正在播放的语音
             if (currentAudio) {
@@ -2360,6 +2423,9 @@
                 URL.revokeObjectURL(currentAudioUrl);
                 currentAudioUrl = null;
             }
+            
+            // 保存互动状态（供家属端查看）
+            saveElderStatus(lastUserQuestion, text);
             
             // 获取当前角色性格并显示虚拟角色和聊天气泡
             const personality = AIHealthAPI.getPersonality() || 'old_friend';
